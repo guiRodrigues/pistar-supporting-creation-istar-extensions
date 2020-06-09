@@ -5,16 +5,39 @@
  * If you are going to edit the code, always work from the source-code available for download at
  * https://github.com/jhcp/pistar
  */
+var elementList = [
+    {constructsApplie:["Actor"], name:"Actor"},
+    {constructsApplie:["Agent"], name:"Agent"},
+    {constructsApplie:["Role"], name:"Role"},
+    {constructsApplie:["Task"], name:"Task"},
+    {constructsApplie:["Goal"], name:"Goal"},
+    {constructsApplie:["Quality"], name:"Quality"},
+    {constructsApplie:["Resource"], name:"Resource"},
+    {constructsApplie:["AndRefinementLink"], name:"And-Refinement Link"},
+    {constructsApplie:["OrRefinementLink"], name:"Or-Refinement Link"},
+    {constructsApplie:["NeededByLink"], name:"Needed By Link"},
+    {constructsApplie:["QualificationLink"], name:"Qualification Link"},
+    {constructsApplie:["ContributionLink"], name:"Contribution Link"},
+    {constructsApplie:["DependencyLink"], name:"Dependency Link"},
+    {constructsApplie:["IsALink"], name:"Is A Link"},
+    {constructsApplie:["ParticipatesInLink"], name:"Participates In Link"}
+];
 
 ui.components = ui.components || {};  //prevents overriding the variable, while also preventing working with a null variable
 
 ui.components.PropertiesTableView = Backbone.View.extend({
     template: _.template($('#property-template').html()),
-
+    trTemplate: _.template($('#tr-template').html()),
+    selectTemplate: _.template($('#select-template').html()),
+    extensionTemplate: _.template($('#extension-template').html()),
+    stereotype_list: [], 
+    taggedvalue_list: [], 
+    group_list: [], 
     initialize: function () {
         'use strict';
 
         this.$table = $('#properties-table');
+        this.$tableExtension = $('#extension-table');
 
         this.listenTo(this.model, 'mouseup', this.render);
         this.listenTo(this.model, 'change:customProperties', this.render);
@@ -26,6 +49,12 @@ ui.components.PropertiesTableView = Backbone.View.extend({
 
         this.renderElementName();
         this.setupElementNameEditing();
+//Change: begin
+        this.renderElementStereotype();
+        this.setupElementStereotypeEditing();
+        this.renderElementTaggedValue();
+        this.setupElementTaggedValueEditing();
+//Change: end
 
         this.renderElementType();
         this.setupElementTypeEditing();
@@ -36,6 +65,11 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         }
 
         this.setupAddPropertyButton();
+//Change: begin
+        this.setupAddStereotypeButton();
+        this.setupAddTaggedValueButton();
+        this.setupAddGroupButton();
+//Change: end
 
         this.clearOptionsPanel();
         if (this.model.isElement() || this.model.isLink()) {
@@ -50,6 +84,9 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             }
 
             this.setupDeleteButton();
+            this.$tableExtension.show();
+        }else{
+            this.$tableExtension.hide();
         }
         this.setupOptionsPanel();
 
@@ -72,6 +109,52 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             dataType: 'text'
         }));
     },
+//Change: begin
+    renderElementStereotype: function () {
+        'use strict';
+        this.$tableExtension.find('tbody').html(this.extensionTemplate({
+            propertyName: 'Stereotype',
+            propertyValue: this.model.prop('stereotype'),
+            dataType: 'text'
+        }));
+
+        this.$tableExtension.find("#currentStereotype").val(this.model.prop('stereotype'));
+
+        this.$tableExtension.find("#selectStereotype").empty();
+        this.$tableExtension.find("#selectStereotype").append('<option value="">Not Used</option>');
+        this.$tableExtension.find("#selectStereotype").append('<option value="New Value">New Value</option>');
+        
+        this.stereotype_list.forEach((item)=>{
+            if(item.constructsApplie.find((item)=>(item==this.model.attributes.type)))
+                this.$tableExtension.find("#selectStereotype").append('<option value="'+item.name+'">'+item.name+'</option>');
+        });
+        this.$tableExtension.find("#selectStereotype").val(this.model.prop('selectedStereotype'));
+    },
+    renderElementTaggedValue: function () {
+        'use strict';
+        this.$tableExtension.find('tbody').append(this.extensionTemplate({
+            propertyName: 'TaggedValue',
+            propertyValue: this.model.prop('taggedValue'),
+            dataType: 'text'
+        }));
+
+        this.$tableExtension.find("#currentTaggedValue").val(this.model.prop('taggedValue'));
+
+        this.$tableExtension.find("#selectTaggedValue").empty();
+        this.$tableExtension.find("#selectTaggedValue").append('<option value="">Not Used</option>');
+        this.$tableExtension.find("#selectTaggedValue").append('<option value="_new_value">New Value</option>');
+        this.$tableExtension.find("#selectTaggedValue").append('<option value="Id">Id</option>');
+        this.$tableExtension.find("#selectTaggedValue").append('<option value="Reference to">Reference to</option>');
+        this.$tableExtension.find("#selectTaggedValue").append('<option value="Status">Status</option>');
+        this.$tableExtension.find("#selectTaggedValue").append('<option value="Logic">Logic</option>');
+
+        this.taggedvalue_list.forEach((item)=>{
+            if(item.constructsApplie.find((item)=>(item==this.model.attributes.type)))
+                this.$tableExtension.find("#selectTaggedValue").append('<option value="'+item.name+'">'+item.name+'</option>');
+        });
+        this.$tableExtension.find("#selectTaggedValue").val(this.model.prop('selectedTaggedValue'));
+    },
+//Change: end
     renderElementType: function () {
         'use strict';
 
@@ -100,6 +183,9 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             showbuttons: 'bottom',
             success: function (response, newValue) {
                 currentElementModel.prop('name', newValue);
+//Change: begin 
+                currentElementModel.updateLineBreak();
+//Change: end
                 return {newValue: currentElementModel.prop('name')};
             }
         })
@@ -110,6 +196,63 @@ ui.components.PropertiesTableView = Backbone.View.extend({
                 ui.states.editor.transitionTo(ui.states.editor.VIEWING);
             });
     },
+//Change: begin
+    setupElementStereotypeEditing: function () {
+        'use strict';
+        
+        var currentElementModel = this.model;
+        var selectStereotype = this.$tableExtension.find('#selectStereotype');
+        selectStereotype.change((e) => {
+            currentElementModel.prop('stereotype', e.target.value);
+            currentElementModel.prop('selectedStereotype', e.target.value);
+            currentElementModel.updateLineBreak();
+            this.render();
+        });
+        this.$tableExtension.find('#currentStereotype').editable({
+            showbuttons: 'bottom',
+            success: function (response, newValue) {
+                currentElementModel.prop('selectedStereotype', 'New Value');
+                currentElementModel.prop('stereotype', newValue);
+                selectStereotype.val('New Value');
+                currentElementModel.updateLineBreak();
+                return {newValue: currentElementModel.prop('stereotype')};
+            }
+        })
+        .on('shown', function () {
+            ui.states.editor.transitionTo(ui.states.editor.EDITING_TEXT);
+        })
+        .on('hidden', function () {
+            ui.states.editor.transitionTo(ui.states.editor.VIEWING);
+        });
+    },
+    setupElementTaggedValueEditing: function () {
+        'use strict';
+
+        var currentElementModel = this.model;
+        var selectTaggedValue = this.$tableExtension.find('#selectTaggedValue');
+        selectTaggedValue.change((e) => {
+            currentElementModel.prop('selectedTaggedValue', e.target.value);
+            if(e.target.value == '')
+                currentElementModel.prop('taggedValue', '');
+            currentElementModel.updateLineBreak();
+            this.render();
+        });
+        this.$tableExtension.find('#currentTaggedValue').editable({
+            showbuttons: 'bottom',
+            success: function (response, newValue) {
+                currentElementModel.prop('taggedValue', newValue);
+                currentElementModel.updateLineBreak();
+                return {newValue: currentElementModel.prop('taggedValue')};
+            }
+        })
+        .on('shown', function () {
+            ui.states.editor.transitionTo(ui.states.editor.EDITING_TEXT);
+        })
+        .on('hidden', function () {
+            ui.states.editor.transitionTo(ui.states.editor.VIEWING);
+        });
+    },
+//Change: end
     setupElementTypeEditing: function () {
         'use strict';
 
@@ -171,6 +314,140 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         //     });
         // }
     },
+//Change: begin
+    setupAddStereotypeButton: function () {
+        'use strict';
+        $('#add-stereotype-select').html('');
+        let id = 0;
+        elementList.forEach(item => {
+            $('#add-stereotype-select').append('<option value="'+id+'">'+item.name+'</option>');
+            id++;
+        });
+        this.group_list.forEach(item => {
+            $('#add-stereotype-select').append('<option value="'+id+'">'+item.name+'</option>');
+            id++;
+        });
+
+        id = 0;
+        var trTemplate = this.trTemplate;
+        $("#stereotype-table").find('tbody').html('');
+        this.stereotype_list.forEach(item => {
+            $("#stereotype-table").find('tbody').append(trTemplate({
+                first: item.name,
+                second: item.groupName,
+                id: id
+            }));
+            id++;
+        });
+        $("#stereotype-table").find('tbody').find('button').click((e) => {
+            this.stereotype_list.splice(e.target.id, 1);
+            this.render();
+        });
+        $('#add-stereotype-button-area').html('<button id="add-stereotype-button" type="button" class="btn btn-primary">Add</button>');
+        $('#add-stereotype-button').click(() => {
+            let name = $('#add-stereotype-input')[0].value;
+            let id = $('#add-stereotype-select')[0].value;
+            let constructsApplie, groupName;
+            if(id < elementList.length){
+                constructsApplie = elementList[id].constructsApplie;
+                groupName = elementList[id].name;
+            }else{
+                constructsApplie = this.group_list[id-elementList.length].constructsApplie;
+                groupName = this.group_list[id-elementList.length].name;
+            }
+            this.stereotype_list.push({name, constructsApplie, groupName});
+            $('#add-stereotype-input').val('');
+            $('#add-stereotype-select').val('');
+            this.render();
+        });
+    },
+    setupAddTaggedValueButton: function () {
+        'use strict';
+        let id = 0;
+        $('#add-taggedvalue-select').html('');
+        elementList.forEach(item => {
+            $('#add-taggedvalue-select').append('<option value="'+id+'">'+item.name+'</option>');
+            id++;
+        });
+        this.group_list.forEach(item => {
+            $('#add-taggedvalue-select').append('<option value="'+id+'">'+item.name+'</option>');
+            id++;
+        });
+
+        id = 0;
+        var trTemplate = this.trTemplate;
+        $("#taggedvalue-table").find('tbody').html('');
+        this.taggedvalue_list.forEach(item => {
+            $("#taggedvalue-table").find('tbody').append(trTemplate({
+                first: item.name,
+                second: item.groupName,
+                id: id
+            }));
+            id++;
+        });
+        $("#taggedvalue-table").find('tbody').find('button').click((e) => {
+            this.taggedvalue_list.splice(e.target.id, 1);
+            this.render();
+        });
+
+        $('#add-taggedvalue-button-area').html('<button id="add-taggedvalue-button" type="button" class="btn btn-primary">Add</button>');
+        $('#add-taggedvalue-button').click(()=> {
+            let name = $('#add-taggedvalue-input')[0].value;
+            let id = $('#add-taggedvalue-select')[0].value;
+            let constructsApplie, groupName;
+            if(id < elementList.length){
+                constructsApplie = elementList[id].constructsApplie;
+                groupName = elementList[id].name;
+            }else{
+                constructsApplie = this.group_list[id-elementList.length].constructsApplie;
+                groupName = this.group_list[id-elementList.length].name;
+            }
+            this.taggedvalue_list.push({name, constructsApplie, groupName});
+            $('#add-taggedvalue-input').val('');
+            $('#add-taggedvalue-select').val('');
+            this.render();
+        });
+    },
+    setupAddGroupButton: function () {
+        'use strict';
+        $('#add-group-select').html('');
+        elementList.forEach(item => {
+            $('#add-group-select').append('<option value="'+item.name+'">'+item.name+'</option>');
+        });
+
+        let id = 0;
+        var trTemplate = this.trTemplate;
+        $("#group-table").find('tbody').html('');
+        this.group_list.forEach(item => {
+            $("#group-table").find('tbody').append(trTemplate({
+                first: item.name,
+                second: item.constructsApplie,
+                id: id
+            }));
+            id++;
+        });
+        $("#group-table").find('tbody').find('button').click((e) => {
+            this.group_list.splice(e.target.id, 1);
+            this.render();
+        });
+
+        $('#add-group-button-area').html('<button id="add-group-button" type="button" class="btn btn-primary">Add</button>');
+        $('#add-group-button').click(()=>{
+            let name = $('#add-group-input')[0].value;
+            let constructsApplie = [];
+            let selectedList = $('#add-group-select')[0].selectedOptions;
+            for(let i=0; i<selectedList.length; i++)
+                constructsApplie.push(selectedList[i].value);            
+            this.group_list.push({name, constructsApplie});
+            $('#add-group-input').val('');
+            $('#add-group-select').val('');
+            this.render();         
+        });
+        $('.groupDeleteButton').click((e)=>{
+            console.log(e);
+        });
+    },
+//Change: end
     setupAddPropertyButton: function () {
         'use strict';
 

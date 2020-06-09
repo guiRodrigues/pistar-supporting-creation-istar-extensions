@@ -9,8 +9,47 @@
 	A rectangular boundary is used instead of the original circular boundary, to maximize the space available for drawing
 */
 
+//Change: begin
+//Adicionei <text class="stereotype"/> no markup de todos os elementos
+//Adicionei .stereotype em todos os attrs
+//Change: end
+
+let newShapes = JSON.parse(localStorage.getItem('createdElements'));
+
+if (newShapes) {
+    newShapes.map(element => {
+        const name = element.name.charAt(0).toUpperCase() + element.name.slice(1);
+
+        joint.shapes.istar[name] = joint.shapes.basic.Path.extend({
+            markup: '<g class="scalable"><path class="element"/></g><text class="content"/>',
+            defaults: joint.util.deepSupplement({
+                type: name,
+                size: { width: 90, height: 55 },
+                attrs: {
+                    'path': {
+                        d: element["path"],
+                        // d: 'M ' + 0 + ' ' + 0 + ' a 26.1831 26.1831 0 0 1 25 -3 a 18.8816 18.8816 0 0 1 27 -5 a 15.2684 15.2684 0 0 1 17.4999 3.25 a 19.182 19.182 0 0 1 24 -5 a 11.2361 11.2361 0 0 1 14.5 6.5 a 7.5085 7.5085 0 0 1 7 9 a 6.51159 6.51159 0 0 1 2.5 9.99998 a 7.67717 7.67717 0 0 1 -9 9.5 a 18.0487 18.0487 0 0 1 -17.25 3.625 a 41.1115 41.1115 0 0 1 -50.25 4.25 a 20.8059 20.8059 0 0 1 -22.25 0.25 a 28.5345 28.5345 0 0 1 -19.75 -6 a 12.0307 12.0307 0 0 1 -2.75 -21.75 a 6.06009 6.06009 0 0 1 3.74945 -5.62563 Z', //cloud shape
+                        fill: 'rgb(205,254,205)',
+                        resetOffset: true,
+                        stroke: 'black',
+                        'stroke-width': 2,
+                        'vector-effect': 'non-scaling-stroke' /* prevents stroke distortion when the element is resized */
+                    },
+                    text: {
+                        'font-size': 12,
+                        'font-weight': 'bold',
+                        'ref-y': '-65%',
+                        text: 'Quality',
+                        'y-alignment': 'middle'
+                    },
+                }
+            }, joint.shapes.basic.Path.prototype.defaults)
+        });
+    });
+}
+
 joint.shapes.istar.Actor = joint.dia.Element.extend({
-    markup: '<g><rect class="boundary" /><circle class="element actorSymbol" /><path /><text class="content"/></g>',
+    markup: '<g><rect class="boundary" /><circle class="element actorSymbol" /><path /><text class="stereotype"/><text class="content"/></g>',
     defaults: joint.util.deepSupplement({
         type: 'Container',
         size: {width: 200, height: 120},
@@ -23,6 +62,18 @@ joint.shapes.istar.Actor = joint.dia.Element.extend({
                 stroke: 'black',
                 'stroke-width': 2,
                 transform: 'translate(-20, -20)'  //displaces the circle a little bit
+            },
+            '.stereotype': {
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif',
+                'font-size': 12,
+                'font-style': 'italic',
+                ref: '.content',//makes the position of the text relative to content label
+                'ref-x': 0.5,
+                'ref-y': -6,
+                text: '<<Simple-Reflex-Role>>',
+                'text-anchor': 'middle',
+                'y-alignment': 'middle'
             },
             text: {
                 fill: '#000000',
@@ -50,7 +101,7 @@ joint.shapes.istar.Actor = joint.dia.Element.extend({
 });
 
 joint.shapes.istar.Role = joint.dia.Element.extend({
-    markup: '<g><rect class="boundary" /><circle class="element actorSymbol" /><path class="actorDecorator"/><text class="content"/></g>',
+    markup: '<g><rect class="boundary" /><circle class="element actorSymbol" /><path class="actorDecorator"/><text class="stereotype"/><text class="content"/></g>',
     defaults: joint.util.deepSupplement({
         type: 'Container',
         size: {width: 200, height: 120},
@@ -63,6 +114,18 @@ joint.shapes.istar.Role = joint.dia.Element.extend({
                 stroke: 'black',
                 'stroke-width': 2,
                 transform: 'translate(-20, -20)'  //displaces the circle a little bit
+            },
+            '.stereotype': {
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif',
+                'font-size': 12,
+                'font-style': 'italic',
+                ref: '.content',//makes the position of the text relative to content label
+                'ref-x': 0.5,
+                'ref-y': -6,
+                text: '<<Simple-Reflex-Role>>',
+                'text-anchor': 'middle',
+                'y-alignment': 'middle'
             },
             text: {
                 fill: '#000000',
@@ -96,7 +159,7 @@ joint.shapes.istar.Role = joint.dia.Element.extend({
 });
 
 joint.shapes.istar.Agent = joint.dia.Element.extend({
-    markup: '<g><rect class="boundary"/><circle class="element actorSymbol"/><path class="actorDecorator"/><text class="content"/></g>',
+    markup: '<g><rect class="boundary"/><circle class="element actorSymbol"/><path class="actorDecorator"/><text class="stereotype"/><text class="content"/></g>',
     defaults: joint.util.deepSupplement({
         type: 'Container',
         size: {width: 200, height: 120},
@@ -110,6 +173,18 @@ joint.shapes.istar.Agent = joint.dia.Element.extend({
                 'stroke-width': 2,
                 transform: 'translate(-20, -20)'  //displaces the circle a little bit
 
+            },
+            '.stereotype': {
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif',
+                'font-size': 12,
+                'font-style': 'italic',
+                ref: '.content',//makes the position of the text relative to content label
+                'ref-x': 0.5,
+                'ref-y': -6,
+                text: '<<Simple-Reflex-Role>>',
+                'text-anchor': 'middle',
+                'y-alignment': 'middle'
             },
             text: {
                 fill: '#000000',
@@ -145,7 +220,7 @@ joint.shapes.istar.Agent = joint.dia.Element.extend({
 
 
 joint.shapes.istar.Goal = joint.shapes.basic.Rect.extend({
-    markup: '<g class="scalable"><rect class="element"/></g><text class="content"/>',
+    markup: '<g class="scalable"><rect class="element"/></g><text class="stereotype"/><text class="content"/>',
     defaults: joint.util.deepSupplement({
         type: 'Goal',
         size: {width: 90, height: 35},
@@ -159,6 +234,18 @@ joint.shapes.istar.Goal = joint.shapes.basic.Rect.extend({
                 'vector-effect': 'non-scaling-stroke', /* prevents stroke distortion when the element is resized */
                 width: 130
             },
+            '.stereotype': {
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif',
+                'font-size': 12,
+                'font-style': 'italic',
+                ref: '.content',//makes the position of the text relative to content label
+                'ref-x': 0.5,
+                'ref-y': -6,
+                text: '<<Simple-Reflex-Role>>',
+                'text-anchor': 'middle',
+                'y-alignment': 'middle'
+            },
             text: {
                 'font-size': 12,
                 'font-weight': 'bold',
@@ -169,7 +256,7 @@ joint.shapes.istar.Goal = joint.shapes.basic.Rect.extend({
 });
 
 joint.shapes.istar.Resource = joint.shapes.basic.Rect.extend({
-    markup: '<g class="scalable"><rect class="element"/></g><text class="content"/>',
+    markup: '<g class="scalable"><rect class="element"/></g><text class="stereotype"/><text class="content"/>',
     defaults: joint.util.deepSupplement({
         type: 'Resource',
         size: {width: 90, height: 35},
@@ -183,6 +270,18 @@ joint.shapes.istar.Resource = joint.shapes.basic.Rect.extend({
                 'vector-effect': 'non-scaling-stroke', /* prevents stroke distortion when the element is resized */
                 width: 130
             },
+            '.stereotype': {
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif',
+                'font-size': 12,
+                'font-style': 'italic',
+                ref: '.content',//makes the position of the text relative to content label
+                'ref-x': 0.5,
+                'ref-y': -6,
+                text: '<<Simple-Reflex-Role>>',
+                'text-anchor': 'middle',
+                'y-alignment': 'middle'
+            },
             text: {
                 'font-size': 12,
                 'font-weight': 'bold',
@@ -193,7 +292,7 @@ joint.shapes.istar.Resource = joint.shapes.basic.Rect.extend({
 });
 
 joint.shapes.istar.Task = joint.shapes.basic.Polygon.extend({
-    markup: '<g class="scalable"><polygon class="element"/></g><text class="content"/>',
+    markup: '<g class="scalable"><polygon class="element"/></g><text class="stereotype"/><text class="content"/>',
     defaults: joint.util.deepSupplement({
         type: 'Task',
         size: {width: 95, height: 36},
@@ -207,6 +306,15 @@ joint.shapes.istar.Task = joint.shapes.basic.Polygon.extend({
                 'vector-effect': 'non-scaling-stroke', /* prevents stroke distortion when the element is resized */
                 width: 130
             },
+            '.stereotype': {
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif',
+                'font-size': 12,
+                'font-style': 'italic',
+                ref: '.content',//makes the position of the text relative to content label
+                'ref-dy': '-150%',
+                text: '<<Simple-Reflex-Role>>',
+            },
             text: {
                 text: 'Task',
                 'font-size': 12,
@@ -218,7 +326,7 @@ joint.shapes.istar.Task = joint.shapes.basic.Polygon.extend({
 });
 
 joint.shapes.istar.Quality = joint.shapes.basic.Path.extend({
-    markup: '<g class="scalable"><path class="element"/></g><text class="content"/>',
+    markup: '<g class="scalable"><path class="element"/></g><text class="stereotype"/><text class="content"/>',
     defaults: joint.util.deepSupplement({
         type: 'Quality',
         size: {width: 90, height: 55},
@@ -232,10 +340,19 @@ joint.shapes.istar.Quality = joint.shapes.basic.Path.extend({
                 'stroke-width': 2,
                 'vector-effect': 'non-scaling-stroke' /* prevents stroke distortion when the element is resized */
             },
+            '.stereotype': {
+                fill: '#000000',
+                'font-family': 'Arial, helvetica, sans-serif',
+                'font-size': 12,
+                'font-style': 'italic',
+                ref: '.content',//makes the position of the text relative to content label
+                'ref-dy': '-150%',
+                text: '<<Simple-Reflex-Role>>',
+            },
             text: {
                 'font-size': 12,
                 'font-weight': 'bold',
-                'ref-y': '-65%',
+                'ref-dy': '-50%',
                 text: 'Quality',
                 'y-alignment': 'middle'
             },

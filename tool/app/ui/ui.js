@@ -120,11 +120,22 @@ var ui = function() {
                 if (toTrigger) {
                     istar.paper.trigger('change:selection', {selectedCell: cell});
                 }
-                if (cell.isElement()) {
+                if (cell.isElement() || cell.isLink()) {
                     $('#sidepanel-tab-style').show();
+//Change: begin
+                    $('#sidepanel-tab-properties a').tab('show');
+                    $('#sidepanel-tab-stereotype').hide();
+                    $('#sidepanel-tab-taggedvalue').hide();
+                    $('#sidepanel-tab-group').hide();
+//Change: end
                 }
                 else {
                     $('#sidepanel-tab-style').hide();
+//Change: begin
+                    $('#sidepanel-tab-stereotype').show();
+                    $('#sidepanel-tab-taggedvalue').show();
+                    $('#sidepanel-tab-group').show();
+//Change: end
                 }
             }
         },
@@ -150,6 +161,11 @@ var ui = function() {
 
                 $('#sidepanel-tab-style').hide();
                 $('#sidepanel-tab-properties a').tab('show');
+//Change: begin
+                $('#sidepanel-tab-stereotype').show();
+                $('#sidepanel-tab-taggedvalue').show();
+                $('#sidepanel-tab-group').show();
+//Change: end  
             }
         },
         hideSelection: function() {

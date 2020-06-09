@@ -28,6 +28,89 @@ https://github.com/jhcp/pistar
     <link href="app/ui/lib/bootstrap3-editable/bootstrap-editable.css" rel="stylesheet"> <!-- x-editable -->
     <!-- tool styles -->
     <link href="pistar.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Roboto:300,500');
+
+        @color-card-background: #2d3638;
+        @color-tag-background: #191e20;
+        @color-anchor: #e37544;
+        @color-body-copy: #b9bcbd;
+        @default-border-radius: 10px;
+        @breakpoint-medium: "screen and (min-width: 700px)";
+
+        html, body {
+        background-color: #fff;
+        }
+
+        .form-popup-bg {
+        position:absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-content: center;
+        justify-content: center;
+        }
+        .form-popup-bg {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        background-color: rgba(94, 110, 141, 0.9);
+        opacity: 0;
+        visibility: hidden;
+        -webkit-transition: opacity 0.3s 0s, visibility 0s 0.3s;
+        -moz-transition: opacity 0.3s 0s, visibility 0s 0.3s;
+        transition: opacity 0.3s 0s, visibility 0s 0.3s;
+        overflow-y: auto;
+        z-index: 10000;
+        }
+        .form-popup-bg.is-visible {
+        opacity: 1;
+        visibility: visible;
+        -webkit-transition: opacity 0.3s 0s, visibility 0s 0s;
+        -moz-transition: opacity 0.3s 0s, visibility 0s 0s;
+        transition: opacity 0.3s 0s, visibility 0s 0s;
+        }
+        .form-container {
+            background-color: #2d3638;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            position:relative;
+        padding: 40px;
+        color: #fff;
+        }
+        .close-button {
+        background:none;
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        border: solid 1px #fff;
+        }
+
+        .form-popup-bg:before{
+            content:'';
+            background-color: #fff;
+        opacity: .25;
+        position:absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -123,6 +206,47 @@ https://github.com/jhcp/pistar
             <div class="menu-group">
                 <div class="menu-line">
                     <span id="add-internal-cells-palette" class="add-button"></span>
+                    <button id="btnOpenForm">+<br>Add new</button>
+                    <div class="form-popup-bg">
+                        <div class="form-container">
+                            <button id="btnCloseForm" class="close-button">X</button>
+                            <h1>Create a new Construct</h1>
+                            <form id="create-element">
+                                <div class="form-group">
+                                    <label for="">Name</label>
+                                    <input id="element-name" type="text" class="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="">Form</label>
+                                    <input id="element-svg-path" class="form-control" type="text" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="">Icon</label>
+                                    <input id="element-image" class="form-control" type="file" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="">Type</label>
+                                    <select name="cars" id="cars">
+                                        <option value="link">Link</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="">Source</label>
+                                    <select name="cars" id="cars">
+                                        <option value="link">Goal</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="">Target</label>
+                                    <select name="cars" id="cars">
+                                        <option value="link">Goal</option>
+                                    </select>
+                                </div>
+                                <button type="submit">Create</button>
+                            </form>
+                        </div>
+                    </div>
+                    <button id="remove-all" type="button">Remove All</button>
                 </div>
             </div>
 
@@ -237,6 +361,9 @@ https://github.com/jhcp/pistar
 
             <ul class="nav nav-tabs" role="tablist">
                 <li role="presentation" class="active" id="sidepanel-tab-properties"><a href="#subpanel-properties" aria-controls="subpanel-properties" role="tab" data-toggle="tab">Properties</a></li>
+                <li role="presentation" id="sidepanel-tab-stereotype"><a href="#subpanel-stereotype" aria-controls="subpanel-stereotype" role="tab" data-toggle="tab">Stereotype</a></li>
+                <li role="presentation" id="sidepanel-tab-taggedvalue"><a href="#subpanel-taggedvalue" aria-controls="subpanel-taggedvalue" role="tab" data-toggle="tab">Tagged Value</a></li>
+                <li role="presentation" id="sidepanel-tab-group"><a href="#subpanel-group" aria-controls="subpanel-group" role="tab" data-toggle="tab">Grouper</a></li>
                 <li role="presentation" id="sidepanel-tab-style" style="display: none;"><a href="#subpanel-style" aria-controls="subpanel-style" role="tab" data-toggle="tab">Style</a></li>
             </ul>
 
@@ -251,47 +378,120 @@ https://github.com/jhcp/pistar
                     <div id="add-property-button-area">
                     </div>
 
-                    <div id="sidepanel-title-actions" class="sidepanel-title">Actions:</div>
-                    <div id="cell-actions">
+                    <div id="sidepanel-title-extension" class="sidepanel-title">Extension:</div>
+                    <div id="cell-extension">
+                        <table class="table table-hover" id="extension-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Registered Options</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
                     </div>
-
+                    <div id="sidepanel-title-actions" class="sidepanel-title">Actions:</div>
+                    <div id="cell-actions"></div>
                 </div>
-
+                <div id="subpanel-stereotype" role="tabpanel" class="tab-pane">
+                    <table id="stereotype-table" class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td><b>Name</b></td>
+                                <td><b>Constructs Applied</b></td>
+                                <!-- <td></td> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <div><br/><b>Add New Stereotype</b></div>
+                    <table class="table table-hover" id="properties-table">
+                        <tbody>
+                            <tr>
+                                <td>Name:</td>
+                                <td><input id="add-stereotype-input" class="form-control"/></td>
+                            </tr>
+                            <tr>
+                                <td>Constructs Applied:</td>
+                                <td>
+                                    <select id="add-stereotype-select" class="form-control" name="constructs-applie">
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="add-stereotype-button-area"></div>
+                </div>
+                <div id="subpanel-taggedvalue" role="tabpanel" class="tab-pane">
+                    <table id="taggedvalue-table" class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td><b>Name</b></td>
+                                <td><b>Constructs Applied</b></td>
+                                <!-- <td></td> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <div><br/><b>Add New Tagged Value</b></div>
+                    <table class="table table-hover" id="properties-table">
+                        <tbody>
+                            <tr>
+                                <td>Name:</td>
+                                <td><input id="add-taggedvalue-input" class="form-control"/></td>
+                            </tr>
+                            <tr>
+                                <td>Constructs Applied:</td>
+                                <td>
+                                    <select id="add-taggedvalue-select" class="form-control" name="constructs-applie">
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="add-taggedvalue-button-area"></div>
+                </div>
+                <div id="subpanel-group" role="tabpanel" class="tab-pane">
+                    <table id="group-table" class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td><b>Name</b></td>
+                                <td><b>Constructs Applied</b></td>
+                                <!-- <td></td> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <div><br/><b>Add New Grouper</b></div>
+                    <table class="table table-hover" id="properties-table">
+                        <tbody>
+                            <tr>
+                                <td>Name:</td>
+                                <td><input type="text" id="add-group-input" class="form-control"/></td>
+                            </tr>
+                            <tr>
+                                <td>Constructs Applied:</td>
+                                <td>
+                                    <select id="add-group-select" class="form-control" name="constructs-applie" multiple>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="add-group-button-area"></div>
+                </div>
                 <div id="subpanel-style" role="tabpanel" class="tab-pane">
-
                     <div class="sidepanel-title">Element:</div>
                     <div class="group">
                         Color:&nbsp;
                         <input id="single-element-color-picker" class="jscolor {hash:true}" value="ccfacd" size="8">
                         <a id="reset-element-color-button" class="btn btn-default btn-xs button-horizontal"><i class="glyphicon glyphicon-erase"></i> Reset color</a>
-                        <!-- <br>Line style:&nbsp;
-                        <select>
-                          <option value="volvo">solid</option>
-                          <option value="saab">dashed</option>
-                          <option value="mercedes">dotted</option>
-                        </select>
-                        <br>Line thickness:&nbsp;
-                        <input type="number" name="quantity" min="1" max="25" value ="2">
-                        <br><input type="checkbox" name="" value=""> shadow
-                        <br><input type="checkbox" name="" value=""> hand-drawn
-                        <br><input type="checkbox" name="" value=""> auto-break lines -->
                     </div>
-
-
-                    <!-- <div class="sidepanel-title">Text:</div>
-                    <div class="group">
-                      Color: <input id="single-element-color-picker" class="jscolor {hash:true}" value="000" size="8">
-                      <a id="reset-element-color-button" class="btn btn-default btn-xs button-horizontal"><i class="glyphicon glyphicon-erase"></i> Reset color</a>
-                      <br><button style="font-weight:1000;">B</button><button style="font-style: italic;">I</button><button style="text-decoration: underline;">U</button><button style="text-decoration: line-through;">S</button>
-                      <br>Size: <input type="number" name="quantity" min="1" max="25" value ="12">
-                      <br>Top padding: <input type="number" name="quantity" min="1" max="25" value ="2">
-                      <br>Letter spacing: <input type="number" name="quantity" min="-10" max="25" value ="0">
-                      <br>Word spacing: <input type="number" name="quantity" min="-10" max="25" value ="0">
-                      <br>Line height: <input type="number" name="quantity" min="0.1" max="10" value ="1.1" step="0.1">
-                      <br><input type="checkbox" name="" value=""> shadow
-                      <br><input type="checkbox" name="" value=""> uppercase
-                    </div> -->
-
                 </div>
             </div>
 
@@ -341,6 +541,35 @@ https://github.com/jhcp/pistar
     </a>
 </script>
 
+<script type="text/template" id="tr-template">
+    <tr>
+        <td scope="row"><%- first %></td>
+        <td scope="row"><%- second %></td>
+        <td scope="row"><button type="button" class="btn btn-danger btn-sm" id="<%- id %>">delete</button></td>
+    </tr>
+</script>
+
+<script type="text/template" id="select-template">
+    <tr>
+        <th scope="row" class="property-name"><%- propertyName %></th>
+        <td>
+            <select id="current<%- propertyName %>" class="form-control" name="constructs-applie">
+            </select>
+        </td>
+</tr>
+</script>
+
+<script type="text/template" id="extension-template">
+    <tr>
+        <th scope="row" class="property-name"><%- propertyName %></th>
+        <td>
+            <select id="select<%- propertyName %>" class="form-control" name="constructs-applie"></select>
+        </td>
+        <td class="property-value">
+            <a href="#" id="current<%- propertyName %>" class="property-value" data-type="<%- dataType %>" data-pk="1" data-name="<%- propertyName %>" data-title="Enter <%- propertyName %>"><%- propertyValue %></a>
+        </td>
+    </tr>
+</script>
 
 <script type="text/template" id="property-template">
     <tr>
@@ -568,6 +797,59 @@ https://github.com/jhcp/pistar
 <!-- end of plugin(s) area -->
 
 <script src="app/ui/main.js"></script>
+
+<script>
+    function closeForm() {
+        $('.form-popup-bg').removeClass('is-visible');
+    }
+
+    $(document).ready(function ($) {
+
+        /* Contact Form Interactions */
+        $('#btnOpenForm').on('click', function (event) {
+            event.preventDefault();
+
+            console.log(event);
+
+            $('.form-popup-bg').addClass('is-visible');
+        });
+
+        $('#remove-all').on('click', function (event) {
+            localStorage.clear();
+        });
+
+        $('#create-element').on('submit', function (event) {
+            event.preventDefault();
+
+            const elementProps = event;
+
+            const element = {
+                name: $('#element-name').val(),
+                path: $('#element-svg-path').val()
+            };
+
+            const createdElements = JSON.parse(localStorage.getItem('createdElements'));
+            if (!createdElements) {
+                localStorage.setItem('createdElements', JSON.stringify([element]));
+            } else {
+                createdElements.push(element);
+                localStorage.setItem('createdElements', JSON.stringify(createdElements));
+            }
+
+            console.log(event);
+        });
+
+        //close popup when clicking x or off popup
+        $('.form-popup-bg').on('click', function (event) {
+            if ($(event.target).is('.form-popup-bg') || $(event.target).is('#btnCloseForm')) {
+                event.preventDefault();
+
+                $(this).removeClass('is-visible');
+            }
+        });
+
+    });
+</script>
 
 </body>
 </html>

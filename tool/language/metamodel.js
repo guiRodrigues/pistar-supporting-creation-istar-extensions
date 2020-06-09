@@ -6,6 +6,21 @@
  * https://github.com/jhcp/pistar
  */
 
+const props = {
+    "canBeInnerElement": true,
+    "canBeDependum": true,
+    "canBeOnPaper": false
+};
+let createdElements = JSON.parse(localStorage.getItem('createdElements'));
+let newNodes = {};
+
+if (createdElements) {
+    createdElements.map(element => {
+        let nameFormatted = element.name.charAt(0).toUpperCase() + element.name.slice(1);
+        newNodes[nameFormatted] = {...props};
+    });
+}
+
 /**
  * An object that defines the metamodel to be used.
  * By default, each Cell (Element or Link) is valid. However,
@@ -78,7 +93,8 @@ istar.metamodel = {
             "canBeInnerElement": true,
             "canBeDependum": true,
             "canBeOnPaper": false
-        }
+        },
+        ...newNodes
     },
 
     //Add here the links of your language that directly relate a container with another container

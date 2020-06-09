@@ -8,6 +8,7 @@
 
 /**
  * Construct a new istar object.
+
  * This is the basic istar class.
  * this object contains the main functionalities for creating istar models
  *
@@ -26,6 +27,28 @@ var istar = function () {
     }
 
     //prototype functions
+//Change: begin
+     function _setNodeStereotype (content) {
+        var breakWidth = 90;
+        if (! this.isKindOfActor()) {
+            breakWidth = this.getBBox().width;
+        }
+        else {
+            breakWidth = joint.util.getElementBBox($('#'+ this.findView(istar.paper).id +' .actorSymbol')).width;
+        }
+
+        content = $.trim(content) || '';
+        content = joint.util.breakText(content, {width: breakWidth});//add the line breaks automatically
+       
+        if (content) {
+            this.attr('.stereotype/text', '<<' + content + '>>');
+        }else{
+            this.attr('.stereotype/text', '');
+        }
+        return this;
+    }
+//Change: end
+
     function _setNodeLabel (content) {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
@@ -49,8 +72,17 @@ var istar = function () {
     function _updateLineBreak () {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
-
-        this.setNodeLabel(this.prop('name'));
+//Change: begin
+        if(this.prop('selectedTaggedValue')){
+            if(this.prop('selectedTaggedValue') == '_new_value')
+                this.setNodeLabel('{'+(this.prop('taggedValue')||'')+'} '+this.prop('name'));
+            else
+                this.setNodeLabel('{'+this.prop('selectedTaggedValue')+"="+(this.prop('taggedValue')||'')+'} '+this.prop('name'));
+        }else{
+            this.setNodeLabel(this.prop('name'));
+        }
+        this.setNodeStereotype(this.prop('stereotype'));
+//Change: end
     }
 
     function _embedNode (node) {
@@ -294,6 +326,9 @@ var istar = function () {
 
                 function setupElementLabelFunctions() {
                     joint.dia.Element.prototype.setNodeLabel = _setNodeLabel;
+//Change: begin
+                    joint.dia.Element.prototype.setNodeStereotype = _setNodeStereotype;
+//Change: end
                     joint.dia.Element.prototype.updateLineBreak = _updateLineBreak;
                 }
 
@@ -352,12 +387,11 @@ var istar = function () {
                 //stores the initial size of the element in order to later be able to restore it to its initial size
                 newNode.prop('originalSize', newNode.prop('size'));
 
+//Change: begin
                 if (newNode.attr('.stereotype')) {
-                    if (! newNode.attr('.stereotype/text')) {
-                        newNode.attr('.stereotype/text', '<<' + nodeType.name + '>>');
-                    }
+                    newNode.attr('.stereotype/text', '');
                 }
-
+//Change: end
                 return newNode;
             },
         },
