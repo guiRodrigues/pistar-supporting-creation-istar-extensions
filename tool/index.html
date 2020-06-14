@@ -31,17 +31,6 @@ https://github.com/jhcp/pistar
     <style>
         @import url('https://fonts.googleapis.com/css?family=Roboto:300,500');
 
-        @color-card-background: #2d3638;
-        @color-tag-background: #191e20;
-        @color-anchor: #e37544;
-        @color-body-copy: #b9bcbd;
-        @default-border-radius: 10px;
-        @breakpoint-medium: "screen and (min-width: 700px)";
-
-        html, body {
-        background-color: #fff;
-        }
-
         .form-popup-bg {
         position:absolute;
         top: 0;
@@ -59,7 +48,6 @@ https://github.com/jhcp/pistar
         top: 0;
         height: 100%;
         width: 100%;
-        background-color: rgba(94, 110, 141, 0.9);
         opacity: 0;
         visibility: hidden;
         -webkit-transition: opacity 0.3s 0s, visibility 0s 0.3s;
@@ -109,6 +97,10 @@ https://github.com/jhcp/pistar
         left: 0;
         right: 0;
         bottom: 0;
+        }
+
+        .link-props {
+            display: none;
         }
     </style>
 </head>
@@ -203,7 +195,6 @@ https://github.com/jhcp/pistar
                 </div>
             </div>
 
-            <div class="menu-group">
                 <div class="menu-line">
                     <span id="add-internal-cells-palette" class="add-button"></span>
                     <button id="btnOpenForm">+<br>Add new</button>
@@ -226,21 +217,25 @@ https://github.com/jhcp/pistar
                                 </div>
                                 <div class="form-group">
                                     <label for="">Type</label>
-                                    <select name="cars" id="cars">
+                                    <select name="cars" id="type">
+                                        <option value="node">Node</option>
                                         <option value="link">Link</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="">Source</label>
-                                    <select name="cars" id="cars">
-                                        <option value="link">Goal</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="">Target</label>
-                                    <select name="cars" id="cars">
-                                        <option value="link">Goal</option>
-                                    </select>
+                                <!-- Only for link -->
+                                <div class="link-props">
+                                    <div class="form-group">
+                                        <label for="">Source</label>
+                                        <select name="cars" id="cars">
+                                            <option value="link">Goal</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">Target</label>
+                                        <select name="cars" id="cars">
+                                            <option value="link">Goal</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <button type="submit">Create</button>
                             </form>
@@ -248,7 +243,6 @@ https://github.com/jhcp/pistar
                     </div>
                     <button id="remove-all" type="button">Remove All</button>
                 </div>
-            </div>
 
             <div class="line-break"></div>
             <div id="status-bar">
@@ -799,11 +793,10 @@ https://github.com/jhcp/pistar
 <script src="app/ui/main.js"></script>
 
 <script>
-    function closeForm() {
-        $('.form-popup-bg').removeClass('is-visible');
-    }
 
     $(document).ready(function ($) {
+
+        // $('.form-popup-bg').addClass('is-visible');
 
         /* Contact Form Interactions */
         $('#btnOpenForm').on('click', function (event) {
@@ -816,7 +809,16 @@ https://github.com/jhcp/pistar
 
         $('#remove-all').on('click', function (event) {
             localStorage.clear();
+            location.reload();
         });
+
+        $("#type").change(function () {
+            const type = $("#type").children("option:selected"). val();
+            const display = type === "link" ? "block" : "none";
+
+            $(".link-props").css("display", display);
+        });
+
 
         $('#create-element').on('submit', function (event) {
             event.preventDefault();
@@ -835,6 +837,8 @@ https://github.com/jhcp/pistar
                 createdElements.push(element);
                 localStorage.setItem('createdElements', JSON.stringify(createdElements));
             }
+
+            location.reload();
 
             console.log(event);
         });
