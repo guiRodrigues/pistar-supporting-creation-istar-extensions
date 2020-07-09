@@ -11,13 +11,19 @@ const props = {
     "canBeDependum": true,
     "canBeOnPaper": false
 };
-let createdElements = JSON.parse(localStorage.getItem('createdElements'));
+let createdNodes = JSON.parse(localStorage.getItem('createdNodes'));
 let newNodes = {};
+let newLinks = {};
 
-if (createdElements) {
-    createdElements.map(element => {
+if (createdNodes) {
+    createdNodes.map(element => {
         let nameFormatted = element.name.charAt(0).toUpperCase() + element.name.slice(1);
-        newNodes[nameFormatted] = {...props};
+
+        if (element.type === "Node") {
+            newNodes[nameFormatted] = {...props};
+        } else if (element.type === "Link") {
+            newLinks[nameFormatted] = {}
+        }
     });
 }
 
@@ -133,7 +139,8 @@ istar.metamodel = {
         "ContributionLink": {
             "changeableLabel": true,
             "possibleLabels": ["make", "help", "hurt", "break"]
-        }
+        },
+        ...newLinks
     }
 };
 

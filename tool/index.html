@@ -28,8 +28,19 @@ https://github.com/jhcp/pistar
     <link href="app/ui/lib/bootstrap3-editable/bootstrap-editable.css" rel="stylesheet"> <!-- x-editable -->
     <!-- tool styles -->
     <link href="pistar.css" rel="stylesheet">
+    <link rel="stylesheet" href="./language/multiSelect.css">
     <style>
         @import url('https://fonts.googleapis.com/css?family=Roboto:300,500');
+        @color-card-background: #2d3638;
+        @color-tag-background: #191e20;
+        @color-anchor: #e37544;
+        @color-body-copy: #b9bcbd;
+        @default-border-radius: 10px;
+        @breakpoint-medium: "screen and (min-width: 700px)";
+
+        html, body {
+        background-color: #fff;
+        }
 
         .form-popup-bg {
         position:absolute;
@@ -97,6 +108,16 @@ https://github.com/jhcp/pistar
         left: 0;
         right: 0;
         bottom: 0;
+        }
+
+        .button-create-construct {
+            background: #246b29;
+            color: #fff;
+            border: none;
+            border-radius: 0px;
+            font-size: 16px;
+            padding: 15px 30px;
+            text-decoration: none;
         }
 
         .link-props {
@@ -208,36 +229,51 @@ https://github.com/jhcp/pistar
                                     <input id="element-name" type="text" class="form-control" />
                                 </div>
                                 <div class="form-group">
-                                    <label for="">Form</label>
+                                    <label for="">Shape</label>
                                     <input id="element-svg-path" class="form-control" type="text" />
                                 </div>
                                 <div class="form-group">
-                                    <label for="">Icon</label>
-                                    <input id="element-image" class="form-control" type="file" />
-                                </div>
-                                <div class="form-group">
                                     <label for="">Type</label>
-                                    <select name="cars" id="type">
-                                        <option value="node">Node</option>
+                                    <select class="form-control" name="element-type" id="type">
+                                        <option value="node" selected="selected">Node</option>
                                         <option value="link">Link</option>
                                     </select>
                                 </div>
                                 <!-- Only for link -->
                                 <div class="link-props">
-                                    <div class="form-group">
-                                        <label for="">Source</label>
-                                        <select name="cars" id="cars">
-                                            <option value="link">Goal</option>
-                                        </select>
+                                    <div class="sourceTargetSelect">
+                                        <div class="form-group multi">
+                                            <label for="">Source</label>
+                                            <select class="multiSourceTarget" name="source" id="source" multiple data-placeholder="Add Sources">
+                                                <option>Goal</option>
+                                                <option>Task</option>
+                                                <option>Dependum</option>
+                                                <option>Resource</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group multi">
+                                            <label for="">Target</label>
+                                            <select class="multiSourceTarget" name="target" id="target" multiple data-placeholder="Add Targets">
+                                                <option>Goal</option>
+                                                <option>Task</option>
+                                                <option>Dependum</option>
+                                                <option>Resource</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="form-group">
-                                        <label for="">Target</label>
-                                        <select name="cars" id="cars">
-                                            <option value="link">Goal</option>
+                                        <label for="">Kind of Line</label>
+                                        <select class="form-control" name="kind-of-line" id="line">
+                                            <option value="dashed" selected="selected">Dashed</option>
+                                            <option value="continuous">Continuous</option>
+                                            <option value="dotted">Dotted</option>
                                         </select>
                                     </div>
+
+                                    <!-- dribbble -->
+                                    <!-- <a class="dribbble" href="https://dribbble.com/shots/5112850-Multiple-select-animation-field" target="_blank"><img src="https://cdn.dribbble.com/assets/dribbble-ball-1col-dnld-e29e0436f93d2f9c430fde5f3da66f94493fdca66351408ab0f96e2ec518ab17.png" alt=""></a> -->
                                 </div>
-                                <button type="submit">Create</button>
+                                <button class="button-create-construct" type="submit">Create</button>
                             </form>
                         </div>
                     </div>
@@ -796,6 +832,9 @@ https://github.com/jhcp/pistar
 
     $(document).ready(function ($) {
 
+        var sources = [];
+        var targets = [];
+
         // $('.form-popup-bg').addClass('is-visible');
 
         /* Contact Form Interactions */
@@ -825,18 +864,32 @@ https://github.com/jhcp/pistar
 
             const elementProps = event;
 
+            const type = $( "#type option:selected" ).text();
+
+            console.log('Sources' + sources);
+
             const element = {
                 name: $('#element-name').val(),
-                path: $('#element-svg-path').val()
+                path: $('#element-svg-path').val(),
+                type: $('#type option:selected').text()
             };
 
-            const createdElements = JSON.parse(localStorage.getItem('createdElements'));
-            if (!createdElements) {
-                localStorage.setItem('createdElements', JSON.stringify([element]));
-            } else {
-                createdElements.push(element);
-                localStorage.setItem('createdElements', JSON.stringify(createdElements));
+            if (element.type === 'Link') {
+                element['line'] = $('#line option:selected').text();
+                element['source'] = sources;
+                element['target'] = sources;
             }
+
+            const createdNodes = JSON.parse(localStorage.getItem('createdNodes'));
+            if (!createdNodes) {
+                localStorage.setItem('createdNodes', JSON.stringify([element]));
+            } else {
+                createdNodes.push(element);
+                localStorage.setItem('createdNodes', JSON.stringify(createdNodes));
+            }
+
+            sources = [];
+            targets = [];
 
             location.reload();
 
@@ -850,6 +903,120 @@ https://github.com/jhcp/pistar
 
                 $(this).removeClass('is-visible');
             }
+        });
+
+
+
+        var select = $('.multiSourceTarget');
+        var options = select.find('option');
+
+        console.log('Options:', options)
+
+        var div = $('<div />').addClass('selectMultiple');
+        var active = $('<div />');
+        var list = $('<ul />');
+        var placeholder = select.data('placeholder');
+
+        var span = $('<span />').text(placeholder).appendTo(active);
+
+        options.each(function () {
+            var text = $(this).text();
+            if ($(this).is(':selected')) {
+                active.append($('<a />').html('<em>' + text + '</em><i></i>'));
+                span.addClass('hide');
+            } else {
+                list.append($('<li />').html(text));
+            }
+        });
+
+        active.append($('<div />').addClass('arrow'));
+        div.append(active).append(list);
+
+        select.wrap(div);
+
+        $(document).on('click', '.selectMultiple ul li', function (e) {
+            var select = $(this).parent().parent();
+            var li = $(this);
+
+            console.log('ENTROU', li[0].textContent);
+
+            sources.push(li[0].textContent);
+
+            if (!select.hasClass('clicked')) {
+                select.addClass('clicked');
+                li.prev().addClass('beforeRemove');
+                li.next().addClass('afterRemove');
+                li.addClass('remove');
+                var a = $('<a />').addClass('notShown').html('<em>' + li.text() + '</em><i></i>').hide().appendTo(select.children('div'));
+                a.slideDown(400, function () {
+                    setTimeout(function () {
+                        a.addClass('shown');
+                        select.children('div').children('span').addClass('hide');
+                        select.find('option:contains(' + li.text() + ')').prop('selected', true);
+                    }, 500);
+                });
+                setTimeout(function () {
+                    if (li.prev().is(':last-child')) {
+                        li.prev().removeClass('beforeRemove');
+                    }
+                    if (li.next().is(':first-child')) {
+                        li.next().removeClass('afterRemove');
+                    }
+                    setTimeout(function () {
+                        li.prev().removeClass('beforeRemove');
+                        li.next().removeClass('afterRemove');
+                    }, 200);
+
+                    li.slideUp(400, function () {
+                        li.remove();
+                        select.removeClass('clicked');
+                    });
+                }, 600);
+
+                // Add the select to the goal/target
+
+            }
+        });
+
+        $(document).on('click', '.selectMultiple > div a', function (e) {
+            var select = $(this).parent().parent();
+            var self = $(this);
+            self.removeClass().addClass('remove');
+            select.addClass('open');
+            setTimeout(function () {
+                self.addClass('disappear');
+
+                console.log('SAIU', self[0].textContent);
+
+                var removedElement = self[0].textContent;
+                sources = sources.filter(function(value, index, arr){ return value !== removedElement;});
+
+                setTimeout(function () {
+                    self.animate({
+                        width: 0,
+                        height: 0,
+                        padding: 0,
+                        margin: 0
+                    }, 300, function () {
+                        var li = $('<li />').text(self.children('em').text()).addClass('notShown').appendTo(select.find('ul'));
+                        li.slideDown(400, function () {
+                            li.addClass('show');
+                            setTimeout(function () {
+                                select.find('option:contains(' + self.children('em').text() + ')').prop('selected', false);
+                                if (!select.find('option:selected').length) {
+                                    select.children('div').children('span').removeClass('hide');
+                                }
+                                li.removeClass();
+                            }, 400);
+                        });
+                        self.remove();
+                    })
+                }, 300);
+            }, 400);
+        });
+
+        $(document).on('click', '.selectMultiple > div .arrow, .selectMultiple > div span', function (e) {
+            $(this).parent().parent().toggleClass('open');
         });
 
     });

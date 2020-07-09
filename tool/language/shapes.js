@@ -14,37 +14,39 @@
 //Adicionei .stereotype em todos os attrs
 //Change: end
 
-let newShapes = JSON.parse(localStorage.getItem('createdElements'));
+let newShapes = JSON.parse(localStorage.getItem('createdNodes'));
 
 if (newShapes) {
     newShapes.map(element => {
-        const name = element.name.charAt(0).toUpperCase() + element.name.slice(1);
+        if (element.type === "Node") {
+            const name = element.name.charAt(0).toUpperCase() + element.name.slice(1);
 
-        joint.shapes.istar[name] = joint.shapes.basic.Path.extend({
-            markup: '<g class="scalable"><path class="element"/></g><text class="content"/>',
-            defaults: joint.util.deepSupplement({
-                type: name,
-                size: { width: 90, height: 55 },
-                attrs: {
-                    'path': {
-                        d: element["path"],
-                        // d: 'M ' + 0 + ' ' + 0 + ' a 26.1831 26.1831 0 0 1 25 -3 a 18.8816 18.8816 0 0 1 27 -5 a 15.2684 15.2684 0 0 1 17.4999 3.25 a 19.182 19.182 0 0 1 24 -5 a 11.2361 11.2361 0 0 1 14.5 6.5 a 7.5085 7.5085 0 0 1 7 9 a 6.51159 6.51159 0 0 1 2.5 9.99998 a 7.67717 7.67717 0 0 1 -9 9.5 a 18.0487 18.0487 0 0 1 -17.25 3.625 a 41.1115 41.1115 0 0 1 -50.25 4.25 a 20.8059 20.8059 0 0 1 -22.25 0.25 a 28.5345 28.5345 0 0 1 -19.75 -6 a 12.0307 12.0307 0 0 1 -2.75 -21.75 a 6.06009 6.06009 0 0 1 3.74945 -5.62563 Z', //cloud shape
-                        fill: 'rgb(205,254,205)',
-                        resetOffset: true,
-                        stroke: 'black',
-                        'stroke-width': 2,
-                        'vector-effect': 'non-scaling-stroke' /* prevents stroke distortion when the element is resized */
-                    },
-                    text: {
-                        'font-size': 12,
-                        'font-weight': 'bold',
-                        'ref-y': '-65%',
-                        text: 'Quality',
-                        'y-alignment': 'middle'
-                    },
-                }
-            }, joint.shapes.basic.Path.prototype.defaults)
-        });
+            joint.shapes.istar[name] = joint.shapes.basic.Path.extend({
+                markup: '<g class="scalable"><path class="element"/></g><text class="content"/>',
+                defaults: joint.util.deepSupplement({
+                    type: name,
+                    size: { width: 90, height: 55 },
+                    attrs: {
+                        'path': {
+                            d: element["path"],
+                            // d: 'M ' + 0 + ' ' + 0 + ' a 26.1831 26.1831 0 0 1 25 -3 a 18.8816 18.8816 0 0 1 27 -5 a 15.2684 15.2684 0 0 1 17.4999 3.25 a 19.182 19.182 0 0 1 24 -5 a 11.2361 11.2361 0 0 1 14.5 6.5 a 7.5085 7.5085 0 0 1 7 9 a 6.51159 6.51159 0 0 1 2.5 9.99998 a 7.67717 7.67717 0 0 1 -9 9.5 a 18.0487 18.0487 0 0 1 -17.25 3.625 a 41.1115 41.1115 0 0 1 -50.25 4.25 a 20.8059 20.8059 0 0 1 -22.25 0.25 a 28.5345 28.5345 0 0 1 -19.75 -6 a 12.0307 12.0307 0 0 1 -2.75 -21.75 a 6.06009 6.06009 0 0 1 3.74945 -5.62563 Z', //cloud shape
+                            fill: 'rgb(205,254,205)',
+                            resetOffset: true,
+                            stroke: 'black',
+                            'stroke-width': 2,
+                            'vector-effect': 'non-scaling-stroke' /* prevents stroke distortion when the element is resized */
+                        },
+                        text: {
+                            'font-size': 12,
+                            'font-weight': 'bold',
+                            'ref-y': '-65%',
+                            text: 'Quality',
+                            'y-alignment': 'middle'
+                        },
+                    }
+                }, joint.shapes.basic.Path.prototype.defaults)
+            });
+        }
     });
 }
 
@@ -762,6 +764,67 @@ joint.shapes.istar.QualificationLink = joint.dia.Link.define('QualificationLink'
         ]
     }
 );
+
+if (newShapes) {
+    newShapes.map(element => {
+        if (element.type === "Link") {
+            const name = element.name.charAt(0).toUpperCase() + element.name.slice(1);
+
+            const kindOfLines = {
+                Dashed: '10,5',
+                Dotted: '1,3',
+                Continuous: ''
+            }
+
+            joint.shapes.istar[name] = joint.dia.Link.define(name,
+                {
+                    attrs: {
+                        line: {
+                            connection: true,
+                            fill: 'none',
+                            stroke: 'black',
+                            'stroke-width': 1,
+                            // connection: true,
+                            // fill: 'none',
+                            // stroke: 'black',
+                            // 'stroke-dasharray': '10,5',
+                            'stroke-dasharray': kindOfLines[element.line], // dotted
+                            // 'stroke-width': 1,
+                            targetMarker: {
+                                'd': element['path'],
+                                fill: 'black',
+                                'stroke-width': 1.2,
+                                'type': 'path',
+                            }
+                        },
+                        'connection-wrap': {
+                            connection: true,
+                            fill: 'none',
+                            stroke: 'transparent',
+                            'stroke-linecap': 'round',
+                            'stroke-width': 20
+                        }
+                    },
+                },
+                {
+                    markup: [
+                        {
+                            className: 'c-connection-wrap',
+                            selector: 'connection-wrap',
+                            tagName: 'path'
+                        },
+                        {
+                            selector: 'line',
+                            tagName: 'path'
+                        }
+                    ]
+                },
+            );
+        }
+    })
+};
+
+
 
 /*definition of globals to prevent undue JSHint warnings*/
 /*globals joint:false */

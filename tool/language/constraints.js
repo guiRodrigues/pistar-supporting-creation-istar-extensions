@@ -248,6 +248,104 @@ istar.metamodel.nodeLinks.AndRefinementLink.isValid = function (source, target) 
     return result;
 };
 
+console.log('Contraints Log', newShapes);
+
+if (newShapes) {
+    newShapes.map(element => {
+        if (element.type === 'Link') {
+            const name = element.name.charAt(0).toUpperCase() + element.name.slice(1);
+
+
+            istar.metamodel.nodeLinks[name].isValid = function (source, target) {
+                'use strict';
+
+                //istar 2.0:
+                //goal->goal; goal->task; task->task; task->goal (table 1)
+                //- A parent can only be AND-refined or OR-refined, not both simultaneously (page 10)
+                //- The relationships between intentional elements (contributesTo, qualifies, neededBy, refines)
+                //  apply only to elements that are wanted by the same actor (page 14)
+                //- For a dependency, if a dependerElmt x exists, then x cannot be refined or
+                //   contributed to (page 14)
+                //- The refinement relationship should not lead to refinement cycles
+                //  (e.g., G OR-refined to G1 and G1 OR-refined to G, G OR-refined to G, etc.) (page 14) (ignored)
+
+                // console.log(`${name} -- Source: ${source} | Target: ${target}`);
+
+                // console.log(source);
+
+                let sourceConstructs = element.source;
+                let targetConstructs = element.target;
+
+                // Remove duplicates
+                sourceConstructs = sourceConstructs.filter(function(item, pos) {
+                    return sourceConstructs.indexOf(item) == pos;
+                });
+
+                // Remove duplicates
+                targetConstructs = targetConstructs.filter(function(item, pos) {
+                    return targetConstructs.indexOf(item) == pos;
+                });
+
+                let sourceValid = false;
+                sourceConstructs.map(sourceConstruct => {
+                    sourceValid = sourceValid || source[`is${sourceConstruct}`]();
+                });
+
+                let targetValid = false;
+                targetConstructs.map(targetConstruct => {
+                    targetValid = targetValid || target[`is${targetConstruct}`]();
+                });
+
+                var result = {};
+                var isValid = true;
+
+                if ( !sourceValid ) {
+                    isValid = false;
+                    let textSourceConstructs = [...sourceConstructs].toString();
+                    textSourceConstructs = textSourceConstructs.replace(/,/g, ' or ');
+                    result.message = `the source of an OR-refinement link must be a ${textSourceConstructs}`;
+                }
+                if ( isValid && !targetValid ) {
+                    isValid = false;
+                    result.message = `the target of an OR-refinement link must be a ${[...targetConstructs]}`;
+                }
+                if ( isValid && (source === target) ) {
+                    isValid = false;
+                    result.message = 'you cannot make an OR-refinement link from an element onto itself';
+                }
+                if ( isValid && (source.isDependum() || target.isDependum()) ) {
+                    isValid = false;
+                    result.message = 'you cannot make an OR-refinement link with a dependum (iStar 2.0 Guide, Page 14)';
+                }
+                if ( isValid && (source.attributes.parent !== target.attributes.parent) ) {
+                    isValid = false;
+                    result.message = 'the source and target of an OR-refinement link must pertain to the same actor (iStar 2.0 Guide, Page 14)';
+                }
+                if ( isValid && istar.isThereLinkBetween(source, target)) {
+                    isValid = false;
+                    result.message = 'there can only be one refinement link between the same two elements' +
+                        '<br><br><img src="language/images/errors/duplicatedRefinement.svg" alt="You cannot have duplicated links"/>';
+                }
+                if ( isValid && istar.isElementSourceOfType(target, 'DependencyLink')) {
+                    isValid = false;
+                    result.message = 'you cannot refine a Depender Element; that is, an element that is the source of a Dependency (iStar 2.0 Guide, Page 14)' +
+                        '. Instead, you can try to move the dependency to the sub-element, as shown in the example below.' +
+                        '<br><br><img src="language/images/errors/refinementToDependerELement.svg" alt="You cannot add a Refinement link targeting a Depender Element"/>';
+                }
+                if ( isValid && istar.isElementTargetOfType(target, 'AndRefinementLink')) {
+                    isValid = false;
+                    result.message = 'you cannot mix OR-refinements with AND-refinements targeting the same element ' +
+                        '(iStar 2.0 Guide, Page 10).<br><br>' +
+                        '<img src="language/images/errors/mixAndAndOr.svg" alt="An element may be AND-refined or OR-refined, but not both"/>';
+                }
+
+                result.isValid = isValid;
+                return result;
+            }
+        }
+    });
+}
+
 istar.metamodel.nodeLinks.OrRefinementLink.isValid = function (source, target) {
     'use strict';
 
