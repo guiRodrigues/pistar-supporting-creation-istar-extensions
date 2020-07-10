@@ -22,6 +22,26 @@ var elementList = [
     {constructsApplie:["IsALink"], name:"Is A Link"},
     {constructsApplie:["ParticipatesInLink"], name:"Participates In Link"}
 ];
+var mapNameToType = {
+    "Actor" : "Actor",
+    "Agent": "Agent",
+    "Role" : "Role",
+    "Task" : "Task",
+    "Goal" : "Goal",
+    "Quality" : "Quality",
+    "Resource" : "Resource",
+    "And-Refinement Link": "AndRefinementLink",
+    "Or-Refinement Link" : "OrRefinementLink",
+    "Needed By Link" : "NeededByLink",
+    "Qualification Link" : "QualificationLink",
+    "Contribution Link" : "ContributionLink",
+    "Dependency Link" : "DependencyLink",
+    "Is A Link" : "IsALink",
+    "Participates In Link" : "ParticipatesInLink"
+};
+var stereotype_list = [];
+var taggedvalue_list = [];
+var group_list = [];
 
 ui.components = ui.components || {};  //prevents overriding the variable, while also preventing working with a null variable
 
@@ -30,9 +50,6 @@ ui.components.PropertiesTableView = Backbone.View.extend({
     trTemplate: _.template($('#tr-template').html()),
     selectTemplate: _.template($('#select-template').html()),
     extensionTemplate: _.template($('#extension-template').html()),
-    stereotype_list: [], 
-    taggedvalue_list: [], 
-    group_list: [], 
     initialize: function () {
         'use strict';
 
@@ -42,8 +59,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         this.listenTo(this.model, 'mouseup', this.render);
         this.listenTo(this.model, 'change:customProperties', this.render);
         this.listenTo(this.model, 'change:name', this.render);
-    },
-
+    },    
     render: function () {
         'use strict';
 
@@ -55,10 +71,8 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         this.renderElementTaggedValue();
         this.setupElementTaggedValueEditing();
 //Change: end
-
         this.renderElementType();
         this.setupElementTypeEditing();
-
         for (var propertyName in this.model.prop('customProperties')) {
             this.renderCustomProperty(propertyName);
             this.setupCustomPropertyEditing(propertyName);
@@ -82,7 +96,6 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             else if (this.model.isLink()) {
                 this.setupClearVerticesButton();
             }
-
             this.setupDeleteButton();
             this.$tableExtension.show();
         }else{
@@ -123,8 +136,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         this.$tableExtension.find("#selectStereotype").empty();
         this.$tableExtension.find("#selectStereotype").append('<option value="">Not Used</option>');
         this.$tableExtension.find("#selectStereotype").append('<option value="New Value">New Value</option>');
-        
-        this.stereotype_list.forEach((item)=>{
+        stereotype_list.forEach((item)=>{
             if(item.constructsApplie.find((item)=>(item==this.model.attributes.type)))
                 this.$tableExtension.find("#selectStereotype").append('<option value="'+item.name+'">'+item.name+'</option>');
         });
@@ -148,7 +160,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         this.$tableExtension.find("#selectTaggedValue").append('<option value="Status">Status</option>');
         this.$tableExtension.find("#selectTaggedValue").append('<option value="Logic">Logic</option>');
 
-        this.taggedvalue_list.forEach((item)=>{
+        taggedvalue_list.forEach((item)=>{
             if(item.constructsApplie.find((item)=>(item==this.model.attributes.type)))
                 this.$tableExtension.find("#selectTaggedValue").append('<option value="'+item.name+'">'+item.name+'</option>');
         });
@@ -184,7 +196,9 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             success: function (response, newValue) {
                 currentElementModel.prop('name', newValue);
 //Change: begin 
-                currentElementModel.updateLineBreak();
+                if(currentElementModel.isElement()){
+                    currentElementModel.updateLineBreak();
+                }
 //Change: end
                 return {newValue: currentElementModel.prop('name')};
             }
@@ -197,6 +211,27 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             });
     },
 //Change: begin
+    updateLinkLabel: function (){
+        let label = '';
+        if(this.model.attributes.type == 'IsALink' || this.model.attributes.type == 'ParticipatesInLink')
+            label += this.model.attributes.type;
+        let stereotype = this.model.prop("stereotype");
+        let taggedValue = this.model.prop("taggedValue");
+        let selectedTaggedValue = this.model.prop('selectedTaggedValue');
+        let linkLabel = '';
+        if(stereotype){
+            linkLabel += '<<'+stereotype+'>>\n';
+        }
+        if(selectedTaggedValue){
+            if(selectedTaggedValue == '_new_value')
+                linkLabel += '{'+(taggedValue||'')+'} ';
+            else
+                linkLabel += '{'+selectedTaggedValue+"="+(taggedValue||'')+'} ';
+        }
+        linkLabel += label;
+        this.model.attr('label/text', linkLabel);
+        this.model.attr('label-background/text', linkLabel);
+    },
     setupElementStereotypeEditing: function () {
         'use strict';
         
@@ -205,16 +240,24 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         selectStereotype.change((e) => {
             currentElementModel.prop('stereotype', e.target.value);
             currentElementModel.prop('selectedStereotype', e.target.value);
-            currentElementModel.updateLineBreak();
+            if(currentElementModel.isElement()){
+                currentElementModel.updateLineBreak();
+            }else{
+                this.updateLinkLabel();
+            }
             this.render();
         });
         this.$tableExtension.find('#currentStereotype').editable({
             showbuttons: 'bottom',
-            success: function (response, newValue) {
+            success: (response, newValue) => {
                 currentElementModel.prop('selectedStereotype', 'New Value');
                 currentElementModel.prop('stereotype', newValue);
                 selectStereotype.val('New Value');
-                currentElementModel.updateLineBreak();
+                if(currentElementModel.isElement()){
+                    currentElementModel.updateLineBreak();
+                }else{
+                    this.updateLinkLabel();
+                }    
                 return {newValue: currentElementModel.prop('stereotype')};
             }
         })
@@ -234,14 +277,22 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             currentElementModel.prop('selectedTaggedValue', e.target.value);
             if(e.target.value == '')
                 currentElementModel.prop('taggedValue', '');
-            currentElementModel.updateLineBreak();
+            if(currentElementModel.isElement()){
+                currentElementModel.updateLineBreak();
+            }else{
+                this.updateLinkLabel();
+            }    
             this.render();
         });
         this.$tableExtension.find('#currentTaggedValue').editable({
             showbuttons: 'bottom',
-            success: function (response, newValue) {
+            success: (response, newValue) => {
                 currentElementModel.prop('taggedValue', newValue);
-                currentElementModel.updateLineBreak();
+                if(currentElementModel.isElement()){
+                    currentElementModel.updateLineBreak();
+                }else{
+                    this.updateLinkLabel();
+                }    
                 return {newValue: currentElementModel.prop('taggedValue')};
             }
         })
@@ -323,7 +374,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             $('#add-stereotype-select').append('<option value="'+id+'">'+item.name+'</option>');
             id++;
         });
-        this.group_list.forEach(item => {
+        group_list.forEach(item => {
             $('#add-stereotype-select').append('<option value="'+id+'">'+item.name+'</option>');
             id++;
         });
@@ -331,7 +382,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         id = 0;
         var trTemplate = this.trTemplate;
         $("#stereotype-table").find('tbody').html('');
-        this.stereotype_list.forEach(item => {
+        stereotype_list.forEach(item => {
             $("#stereotype-table").find('tbody').append(trTemplate({
                 first: item.name,
                 second: item.groupName,
@@ -340,7 +391,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             id++;
         });
         $("#stereotype-table").find('tbody').find('button').click((e) => {
-            this.stereotype_list.splice(e.target.id, 1);
+            stereotype_list.splice(e.target.id, 1);
             this.render();
         });
         $('#add-stereotype-button-area').html('<button id="add-stereotype-button" type="button" class="btn btn-primary">Add</button>');
@@ -352,10 +403,10 @@ ui.components.PropertiesTableView = Backbone.View.extend({
                 constructsApplie = elementList[id].constructsApplie;
                 groupName = elementList[id].name;
             }else{
-                constructsApplie = this.group_list[id-elementList.length].constructsApplie;
-                groupName = this.group_list[id-elementList.length].name;
+                constructsApplie = group_list[id-elementList.length].constructsApplie;
+                groupName = group_list[id-elementList.length].name;
             }
-            this.stereotype_list.push({name, constructsApplie, groupName});
+            stereotype_list.push({name, constructsApplie, groupName});
             $('#add-stereotype-input').val('');
             $('#add-stereotype-select').val('');
             this.render();
@@ -369,7 +420,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             $('#add-taggedvalue-select').append('<option value="'+id+'">'+item.name+'</option>');
             id++;
         });
-        this.group_list.forEach(item => {
+        group_list.forEach(item => {
             $('#add-taggedvalue-select').append('<option value="'+id+'">'+item.name+'</option>');
             id++;
         });
@@ -377,7 +428,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         id = 0;
         var trTemplate = this.trTemplate;
         $("#taggedvalue-table").find('tbody').html('');
-        this.taggedvalue_list.forEach(item => {
+        taggedvalue_list.forEach(item => {
             $("#taggedvalue-table").find('tbody').append(trTemplate({
                 first: item.name,
                 second: item.groupName,
@@ -386,7 +437,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             id++;
         });
         $("#taggedvalue-table").find('tbody').find('button').click((e) => {
-            this.taggedvalue_list.splice(e.target.id, 1);
+            taggedvalue_list.splice(e.target.id, 1);
             this.render();
         });
 
@@ -399,10 +450,10 @@ ui.components.PropertiesTableView = Backbone.View.extend({
                 constructsApplie = elementList[id].constructsApplie;
                 groupName = elementList[id].name;
             }else{
-                constructsApplie = this.group_list[id-elementList.length].constructsApplie;
-                groupName = this.group_list[id-elementList.length].name;
+                constructsApplie = group_list[id-elementList.length].constructsApplie;
+                groupName = group_list[id-elementList.length].name;
             }
-            this.taggedvalue_list.push({name, constructsApplie, groupName});
+            taggedvalue_list.push({name, constructsApplie, groupName});
             $('#add-taggedvalue-input').val('');
             $('#add-taggedvalue-select').val('');
             this.render();
@@ -418,7 +469,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         let id = 0;
         var trTemplate = this.trTemplate;
         $("#group-table").find('tbody').html('');
-        this.group_list.forEach(item => {
+        group_list.forEach(item => {
             $("#group-table").find('tbody').append(trTemplate({
                 first: item.name,
                 second: item.constructsApplie,
@@ -427,7 +478,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             id++;
         });
         $("#group-table").find('tbody').find('button').click((e) => {
-            this.group_list.splice(e.target.id, 1);
+            group_list.splice(e.target.id, 1);
             this.render();
         });
 
@@ -437,8 +488,8 @@ ui.components.PropertiesTableView = Backbone.View.extend({
             let constructsApplie = [];
             let selectedList = $('#add-group-select')[0].selectedOptions;
             for(let i=0; i<selectedList.length; i++)
-                constructsApplie.push(selectedList[i].value);            
-            this.group_list.push({name, constructsApplie});
+                constructsApplie.push(mapNameToType[selectedList[i].value]);            
+            group_list.push({name, constructsApplie});
             $('#add-group-input').val('');
             $('#add-group-select').val('');
             this.render();         

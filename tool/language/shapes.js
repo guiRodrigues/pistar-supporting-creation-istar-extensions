@@ -385,7 +385,7 @@ joint.shapes.istar.ParticipatesInLink = joint.dia.Link.define('ParticipatesInLin
                 'stroke-width': 20
             },
             label: {
-                atConnectionRatio: 0.5,
+                atConnectionRatio: 0.3,
                 'font-size': 13,
                 'font-weight': 400,
                 x: -40,
@@ -396,7 +396,7 @@ joint.shapes.istar.ParticipatesInLink = joint.dia.Link.define('ParticipatesInLin
                 // },
             },
             'label-background': {
-                atConnectionRatio: 0.5,
+                atConnectionRatio: 0.3,
                 'font-size': 13,
                 'font-weight': 400,
                 stroke: 'white',
@@ -458,14 +458,14 @@ joint.shapes.istar.IsALink = joint.dia.Link.define('IsALink',
                 'stroke-width': 20
             },
             label: {
-                atConnectionRatio: 0.5,
+                atConnectionRatio: 0.3,
                 'font-size': 13,
                 'font-weight': 400,
                 x: -20,
                 y: 4,
             },
             'label-background': {
-                atConnectionRatio: 0.5,
+                atConnectionRatio: 0.3,
                 'font-size': 13,
                 'font-weight': 400,
                 stroke: 'white',
@@ -569,6 +569,22 @@ joint.shapes.istar.AndRefinementLink = joint.dia.Link.define('AndRefinementLink'
                 stroke: 'transparent',
                 'stroke-linecap': 'round',
                 'stroke-width': 20
+            },
+            label: {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                x: -20,
+                y: 4,
+            },
+            'label-background': {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                stroke: 'white',
+                'stroke-width': '0.35em',
+                x: -20,
+                y: 4,
             }
         }
     },
@@ -582,7 +598,15 @@ joint.shapes.istar.AndRefinementLink = joint.dia.Link.define('AndRefinementLink'
             {
                 selector: 'line',
                 tagName: 'path'
-            }
+            },
+            {
+                selector: 'label-background',
+                tagName: 'text'
+            },
+            {
+                selector: 'label',
+                tagName: 'text'
+            }        
         ]
     }
 );
@@ -608,6 +632,22 @@ joint.shapes.istar.OrRefinementLink = joint.dia.Link.define('OrRefinementLink',
                 stroke: 'transparent',
                 'stroke-linecap': 'round',
                 'stroke-width': 20
+            },
+            label: {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                x: -20,
+                y: 4,
+            },
+            'label-background': {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                stroke: 'white',
+                'stroke-width': '0.35em',
+                x: -20,
+                y: 4,
             }
         }
     },
@@ -621,7 +661,15 @@ joint.shapes.istar.OrRefinementLink = joint.dia.Link.define('OrRefinementLink',
             {
                 selector: 'line',
                 tagName: 'path'
-            }
+            },
+            {
+                selector: 'label-background',
+                tagName: 'text'
+            },
+            {
+                selector: 'label',
+                tagName: 'text'
+            }        
         ]
     }
 );
@@ -656,6 +704,22 @@ joint.shapes.istar.NeededByLink = joint.dia.Link.define('NeededByLink',
                 stroke: 'transparent',
                 'stroke-linecap': 'round',
                 'stroke-width': 20
+            },
+            label: {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                x: -20,
+                y: 4,
+            },
+            'label-background': {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                stroke: 'white',
+                'stroke-width': '0.35em',
+                x: -20,
+                y: 4,
             }
         }
     },
@@ -669,7 +733,15 @@ joint.shapes.istar.NeededByLink = joint.dia.Link.define('NeededByLink',
             {
                 selector: 'line',
                 tagName: 'path'
-            }
+            },
+            {
+                selector: 'label-background',
+                tagName: 'text'
+            },
+            {
+                selector: 'label',
+                tagName: 'text'
+            }        
         ]
     }
 );
@@ -747,9 +819,25 @@ joint.shapes.istar.QualificationLink = joint.dia.Link.define('QualificationLink'
                 stroke: 'transparent',
                 'stroke-linecap': 'round',
                 'stroke-width': 20
+            },            
+            label: {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                x: -20,
+                y: 4,
+            },
+            'label-background': {
+                atConnectionRatio: 0.3,
+                'font-size': 13,
+                'font-weight': 400,
+                stroke: 'white',
+                'stroke-width': '0.35em',
+                x: -20,
+                y: 4,
             }
         }
-    },
+    },    
     {
         markup: [
             {
@@ -760,7 +848,15 @@ joint.shapes.istar.QualificationLink = joint.dia.Link.define('QualificationLink'
             {
                 selector: 'line',
                 tagName: 'path'
-            }
+            },
+            {
+                selector: 'label-background',
+                tagName: 'text'
+            },
+            {
+                selector: 'label',
+                tagName: 'text'
+            }        
         ]
     }
 );

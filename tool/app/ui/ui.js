@@ -1442,6 +1442,9 @@ $('#menu-button-new-model').click(function () {
         message: 'Are you sure you want to create a new model and delete the current model?',
         callback: function (result) {
             if (result === true) {
+                stereotype_list = [];
+                taggedvalue_list = [];
+                group_list = [];
                 istar.clearModel();
             }
         }
