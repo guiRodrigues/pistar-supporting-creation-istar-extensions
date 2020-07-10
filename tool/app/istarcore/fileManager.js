@@ -104,6 +104,11 @@ istar.fileManager = function() {
                 'display': {},
                 'tool': 'pistar.2.0.0',
                 'istar': '2.0',
+                'extension': {
+                    stereotype_list,
+                    taggedvalue_list,
+                    group_list
+                },
                 'saveDate': date,
                 'diagram': diagram
             };
@@ -249,7 +254,12 @@ istar.fileManager = function() {
                     'x': element.prop('position/x'),
                     'y': element.prop('position/y')
                 };
-
+                result.extension = {
+                    stereotype: element.prop('stereotype')||'',
+                    selectedStereotype: element.prop('selectedStereotype')||'',
+                    taggedValue: element.prop('taggedValue')||'',
+                    selectedTaggedValue: element.prop('selectedTaggedValue')||''
+                };
                 var customPropertiesJSON = getCustomPropertiesJSON(element);
                 if (customPropertiesJSON) {
                     result.customProperties = customPropertiesJSON;
@@ -268,6 +278,12 @@ istar.fileManager = function() {
                 if (link.prop('name')) {
                     result.name = link.prop('name');
                 }
+                result.extension = {
+                    stereotype: link.prop('stereotype')||'',
+                    selectedStereotype: link.prop('selectedStereotype')||'',
+                    taggedValue: link.prop('taggedValue')||'',
+                    selectedTaggedValue: link.prop('selectedTaggedValue')||''
+                };
                 var customPropertiesJSON = getCustomPropertiesJSON(link);
                 if (customPropertiesJSON) {
                     result.customProperties = customPropertiesJSON;
@@ -296,7 +312,11 @@ istar.fileManager = function() {
                     // if failed to parse, consider that the input already is a JSON object
                     var inputModel = inputRaw;
                 }
-
+                if(inputModel.extension){
+                    stereotype_list = inputModel.extension.stereotype_list;
+                    taggedvalue_list = inputModel.extension.taggedvalue_list;
+                    group_list = inputModel.extension.group_list;
+                }
                 if (inputModel.diagram) {
                     if (inputModel.diagram.width && inputModel.diagram.height) {
                         istar.paper.setDimensions(inputModel.diagram.width, inputModel.diagram.height);
@@ -425,6 +445,12 @@ istar.fileManager = function() {
                         if (element.customProperties) {
                             newElement.prop('customProperties', element.customProperties);
                         }
+                        if (element.extension) {
+                            newElement.prop('stereotype', element.extension.stereotype);
+                            newElement.prop('selectedStereotype', element.extension.selectedStereotype);
+                            newElement.prop('taggedValue', element.extension.taggedValue);
+                            newElement.prop('selectedTaggedValue', element.extension.selectedTaggedValue);
+                        }
 
                         if (display && display[element.id]) {
                             var size = {};
@@ -454,7 +480,28 @@ istar.fileManager = function() {
                     }
                 }
             }
-
+            function updateLinkLabel(model){
+                let label = '';
+                if(model.attributes.type == 'IsALink' ||model.attributes.type == 'ParticipatesInLink')
+                    label += model.attributes.type;        
+                let stereotype = model.prop("stereotype");
+                let taggedValue = model.prop("taggedValue");
+                let selectedTaggedValue = model.prop('selectedTaggedValue');
+                let linkLabel = '';
+                if(stereotype){
+                    linkLabel += '<<'+stereotype+'>>\n';
+                }
+                if(selectedTaggedValue){
+                    if(selectedTaggedValue == '_new_value')
+                        linkLabel += '{'+(taggedValue||'')+'} ';
+                    else
+                        linkLabel += '{'+selectedTaggedValue+"="+(taggedValue||'')+'} ';
+                }
+                linkLabel += label;
+                model.attr('label/text', linkLabel);
+                model.attr('label-background/text', linkLabel);
+            }
+        
             function addLoadedLink (linkJSON) {
                 if (linkJSON.id && linkJSON.type && linkJSON.source && linkJSON.target) {
                     var typeNameWithoutPrefix = linkJSON.type.split('.')[1];
@@ -478,13 +525,22 @@ istar.fileManager = function() {
                         if (linkJSON.name) {
                             newLink.prop('name', linkJSON.name);
                         }
+                        if (linkJSON.extension) {
+                            newLink.prop('stereotype', linkJSON.extension.stereotype);
+                            newLink.prop('selectedStereotype', linkJSON.extension.selectedStereotype);
+                            newLink.prop('taggedValue', linkJSON.extension.taggedValue);
+                            newLink.prop('selectedTaggedValue', linkJSON.extension.selectedTaggedValue);
+                            updateLinkLabel(newLink);
+                        }
                         if (linkJSON.customProperties) {
                             newLink.prop('customProperties', linkJSON.customProperties);
                         }
-                        var shapeObject = new istar.metamodel.nodeLinks[typeNameWithoutPrefix].shapeObject();
-                        if (shapeObject.attr('smooth')) {
-                            newLink.on('change:vertices', ui._toggleSmoothness);
-                        }
+                        if(istar.metamodel.nodeLinks[typeNameWithoutPrefix]){
+                            var shapeObject = new istar.metamodel.nodeLinks[typeNameWithoutPrefix].shapeObject();
+                            if (shapeObject.attr('smooth')) {
+                                newLink.on('change:vertices', ui._toggleSmoothness);
+                            }
+                        }      
                         return newLink;
                     } else {
                         var errorMessage = 'Unknown link type: ' + linkJSON.type + '.';
